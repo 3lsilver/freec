@@ -1,0 +1,73 @@
+= About
+Freec is a framework you can build voice applications on top of. It makes use of the Event socket outbound API of Freeswitch.
+
+= Installation
+  sudo gem install jankubr-freec
+
+= Usage
+1. Install Freeswitch and point a chosen extension to the IP where your app will run:
+  
+  <extension name="telfa">
+    <condition field="destination_number" expression="^.*$">
+      <action application="socket" data="127.0.0.1:8084 async full" />
+    </condition>
+  </extension>
+  
+2. Create a file with the main class of your application (e.g. Jukebox) and make it a subclass of Freec. Name the file according to the class name (e.g. jukebox.rb). Implement
+   a step method instructions for which will follow. Simple example:
+ 
+  #jukebox.rb
+  require 'rubygems'
+  require 'freec'
+  class Jukebox < Freec
+    def step
+      @step ||= 1
+      case @step
+        when 1
+          answer
+        when 2
+          playback('music/8000/danza-espanola-op-37-h-142-xii-arabesca.wav')
+        when 3
+          return nil
+      end
+      @step += 1
+    end
+  end
+
+3. Run it with:
+  ruby jukebox.rb
+
+= How does it work 
+The step method is called after each even is finished (e.g. file is played, recording is finished). Here is what you can do:
+* read call variables from the hash in call_vars
+* call one of the following methods (Freeswitch apps):
+ * answer
+ * playback(path_to_file)
+ * bridge(number_or_numbers)
+ * record(path_to_file)
+ * read(path_to_file)
+ * set_variable(name, value)
+ * any other via execute_app(app_name, params)
+If you return nil or false from the step method, the call will be hungup.
+  
+= Cool stuff
+* Your application's main file as well as everything you might have in the lib directory will be reloaded on each step in development mode.
+* Passing -d will daemonize the application and automatically implies production mode. 
+* The log directory contains the log file and the pid file.
+* There is a hidden feature.
+
+= Stinks?
+What Freec can do at the moment was enough for me to implement Telfa (http://telfapbx.com). If it doesn't fit your needs, you can:
+1. Complain to hi@jankubr.com .
+2. Fork it and change yourself.
+3. Check Liverpie (http://www.liverpie.com/) or Telegraph (http://code.google.com/p/telegraph/), Freec is inspired by them.
+4. Write yours :-)
+
+= License
+Copyright © 2009 Jan Kubr
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

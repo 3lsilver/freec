@@ -13,16 +13,33 @@ class Freec < EventMachine::Connection
 
   attr_reader :call_vars, :log
   
-  def initialize(*args)
+  def initialize(*args) #:nodoc:
     super
-    @log = FreecLogger.new(defined?(ARGV) && ARGV[0] == '-d' ? @@log_file : STDOUT)    
+    @log = FreecLogger.new(ENVIRONMENT == 'development' ? STDOUT : @@log_file)
     connect_to_database
   end
   
+  def wait_for(key, value)
+    @waiting_for_key = key && key.to_sym
+    @waiting_for_value = value
+  end
+
+  def reset_wait_for
+    wait_for(nil, nil)
+    true 
+  end  
+
+  #Hangs up the call and closes the connection to Freeswitch.
+  def hangup
+    hangup_app
+    close_session
+  end
+          
+private
   def post_init    
     send_response "connect"
   end
-    
+
   def receive_data(data)        
     read_response(data)
     return unless response_complete?
@@ -35,33 +52,18 @@ class Freec < EventMachine::Connection
       hangup unless callback(:step)
     end
   end
-  
+
   def callback(callback_name, *args)
     send(callback_name, *args) if respond_to?(callback_name)
   rescue StandardError => e
     log.error e.message
     e.backtrace.each {|trace_line| log.error(trace_line)}    
   end
-  
+
   def unbind        
     callback(:on_hangup) if respond_to?(:on_hangup)
   end
 
-  def wait_for(key, value)
-    @waiting_for_key = key && key.to_sym
-    @waiting_for_value = value
-  end
-
-  def reset_wait_for
-    wait_for(nil, nil)
-    true 
-  end  
-
-  def hangup
-    hangup_app
-    close_session
-  end
-  
   def reload_application_code
     return unless ENVIRONMENT == 'development'
     load($0)
@@ -72,8 +74,6 @@ class Freec < EventMachine::Connection
       load(full_file_name)
     end
   end
-        
-private
 
   def read_response(data)
     @response ||= ''
@@ -133,7 +133,7 @@ private
   end
   
   def connect_to_database
-    return unless @@config[:database] && @@config['database'][ENVIRONMENT]
+    return unless @@config['database'] && @@config['database'][ENVIRONMENT]
     ActiveRecord::Base.establish_connection(@@config['database'][ENVIRONMENT])
   end  
   

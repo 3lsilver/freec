@@ -1,5 +1,4 @@
 require 'rubygems'
-require 'rake'
 require 'echoe'
 
 Echoe.new('freec', '0.1.0') do |p|

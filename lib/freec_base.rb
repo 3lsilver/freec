@@ -15,8 +15,25 @@ class Freec < EventMachine::Connection
   
   def initialize(*args) #:nodoc:
     super
-    @log = FreecLogger.new(ENVIRONMENT == 'development' ? STDOUT : @@log_file)
+    @log = FreecLogger.new(['development', 'test'].include?(ENVIRONMENT) ? STDOUT : @@log_file)
     connect_to_database
+  end
+  
+  def post_init #:nodoc:
+    send_response "connect"
+  end
+  
+  def receive_data(data) #:nodoc:
+    read_response(data)
+    return unless response_complete?
+    return unless subscribe_to_events_if_not_subscribed
+    parse_response
+    if last_event_dtmf? && respond_to?(:on_dtmf)
+      callback(:on_dtmf, call_vars[:dtmf_digit])
+    elsif waiting_for_this_response? && reset_wait_for || event_completed?
+      reload_application_code
+      hangup unless callback(:step)
+    end
   end
   
   def wait_for(key, value)
@@ -34,24 +51,12 @@ class Freec < EventMachine::Connection
     hangup_app
     close_session
   end
-          
+  
+  def unbind  #:nodoc:
+    callback(:on_hangup) if respond_to?(:on_hangup)
+  end
+  
 private
-  def post_init    
-    send_response "connect"
-  end
-
-  def receive_data(data)        
-    read_response(data)
-    return unless response_complete?
-    return unless subscribe_to_events_if_not_subscribed
-    parse_response
-    if last_event_dtmf? && respond_to?(:on_dtmf)
-      callback(:on_dtmf, call_vars[:dtmf_digit])
-    elsif waiting_for_this_response? && reset_wait_for || event_completed?
-      reload_application_code
-      hangup unless callback(:step)
-    end
-  end
 
   def callback(callback_name, *args)
     send(callback_name, *args) if respond_to?(callback_name)
@@ -60,14 +65,11 @@ private
     e.backtrace.each {|trace_line| log.error(trace_line)}    
   end
 
-  def unbind        
-    callback(:on_hangup) if respond_to?(:on_hangup)
-  end
-
   def reload_application_code
     return unless ENVIRONMENT == 'development'
     load($0)
     lib_dir = "#{ROOT}/lib"
+    return unless File.exist?(lib_dir)
     Dir.open(lib_dir).each do |file|      
       full_file_name = File.join(lib_dir, file)
       next unless File.file?(full_file_name)

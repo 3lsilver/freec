@@ -119,7 +119,7 @@ describe "Freec's callback handling" do
     @freec.should_receive(:callback_name).and_raise(RuntimeError)
     @freec.log.should_receive(:error).with('RuntimeError')
     @freec.log.should_receive(:error).at_least(1).times #backtrace
-    lambda { @freec.callback(:callback_name) }.should_not raise_error(Exception)
+    lambda { @freec.send(:callback, :callback_name) }.should_not raise_error(Exception)
   end
 
 end

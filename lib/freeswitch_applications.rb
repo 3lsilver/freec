@@ -11,6 +11,11 @@ module FreeswitchApplications
   def playback(file_name)
     execute_app('playback', file_name)
   end
+
+  # Spells the string
+  def spell(string)
+    execute_app('phrase', "spell,#{string}")
+  end
   
   # Bridges the call to the given number or numbers (this param can be a number or an array of numbers).
   def bridge(number_or_numbers, options = {})

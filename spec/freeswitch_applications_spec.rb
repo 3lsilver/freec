@@ -34,6 +34,11 @@ describe "how Freec calls Freeswitch applications" do
     @freec.playback('sounds/file.wav')
   end
 
+  it "should execute the phrase app with spell option when called the spell method" do
+    @freec.should_receive(:send_data).with(freeswitch_command('phrase', 'spell,abcd'))
+    @freec.spell('abcd')
+  end
+
   it "should execute the bridge app when called the bridge method" do
     @freec.should_receive(:send_data).with(freeswitch_command('bridge', 'user/brian@10.0.1.2'))
     @freec.bridge('user/brian@10.0.1.2')

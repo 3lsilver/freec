@@ -6,40 +6,40 @@ require 'fileutils'
 require 'daemons/daemonize'
 include Daemonize
 
-def file_name
+def freec_app_file_name
   $0.sub(/\.[^\.]*$/, '')  
 end
 
-def class_name
-  file_name.split('_').map{|w| w.capitalize}.join
+def freec_app_class_name
+  freec_app_file_name.split('_').map{|w| w.capitalize}.join
 end
 
-def log_dir
+def freec_app_log_dir
   "#{ROOT}/log"
 end
 
-def create_log_dir
-  FileUtils.mkdir_p(log_dir)  
+def create_freec_app_log_dir
+  FileUtils.mkdir_p(freec_app_log_dir)  
 end
 
-def log_file
-  @@log_file ||= "#{log_dir}/#{file_name}.log"
+def freec_app_log_file
+  @@log_file ||= "#{freec_app_log_dir}/#{freec_app_file_name}.log"
 end
 
-def pid_file
-  "#{log_dir}/#{file_name}.pid"
+def freec_app_pid_file
+  "#{freec_app_log_dir}/#{freec_app_file_name}.pid"
 end
 
-def load_config
-  if File.exist?(configuration_file)
-    @@config = YAML.load_file(configuration_file)
+def load_freec_app_config
+  if File.exist?(freec_app_configuration_file)
+    @@config = YAML.load_file(freec_app_configuration_file)
   else
     @@config = {}
   end
   @@config['listen_port'] ||= '8084' 
 end
 
-def configuration_file
+def freec_app_configuration_file
   "#{ROOT}/config/config.yml"
 end
 
@@ -47,15 +47,15 @@ unless defined?(TEST)
   at_exit do
     ROOT = File.expand_path(File.dirname($0))
     ENVIRONMENT = ARGV[0] == '-d' ? 'production' : 'development'
-    create_log_dir
-    load_config
+    create_freec_app_log_dir
+    load_freec_app_config
     if ARGV[0] == '-d'
       puts 'Daemonizing...'
-      daemonize(log_file)
+      daemonize(freec_app_log_file)
     end
-    open(pid_file, "w") {|f| f.write(Process.pid) }
+    open(freec_app_pid_file, "w") {|f| f.write(Process.pid) }
     EventMachine::run do
-      EventMachine::start_server '0.0.0.0', @@config['listen_port'].to_i, Kernel.const_get(class_name)
+      EventMachine::start_server '0.0.0.0', @@config['listen_port'].to_i, Kernel.const_get(freec_app_class_name)
       puts "Listening on port #{@@config['listen_port']}"
     end
   end

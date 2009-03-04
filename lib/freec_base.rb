@@ -136,6 +136,7 @@ private
   
   def connect_to_database
     return unless @@config['database'] && @@config['database'][ENVIRONMENT]
+    require 'active_record'
     ActiveRecord::Base.establish_connection(@@config['database'][ENVIRONMENT])
   end  
   

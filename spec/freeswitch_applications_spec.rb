@@ -44,6 +44,11 @@ describe "how Freec calls Freeswitch applications" do
     @freec.bridge('user/brian@10.0.1.2')
   end
 
+  it "should execute the transfer app when called the transfer method" do
+    @freec.should_receive(:send_data).with(freeswitch_command('transfer', '1000'))
+    @freec.transfer('1000')
+  end
+
   it "should pass all numbers passed to the bridge method as params of the bridge separated by comma (thus numbers are called simultaneously)" do
     @freec.should_receive(:send_data).with(freeswitch_command('bridge', 'user/brian@10.0.1.2,user/karl@10.0.1.2'))
     @freec.bridge(['user/brian@10.0.1.2', 'user/karl@10.0.1.2'])

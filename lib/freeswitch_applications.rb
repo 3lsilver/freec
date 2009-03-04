@@ -23,6 +23,11 @@ module FreeswitchApplications
     execute_app("bridge", "#{number_or_numbers}")
   end
   
+  # Transfers the call to the given extension
+  def transfer(extension)
+    execute_app("transfer", "#{extension}")
+  end
+  
   # Records the call to a file with the given file_name
   # file_name is either an absolute path or path relative 
   # to the sound_prefix variable set in Freeswitch's vars.xml configuration file.

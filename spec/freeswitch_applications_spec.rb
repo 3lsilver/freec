@@ -93,6 +93,16 @@ describe "how Freec calls Freeswitch applications" do
     @freec.should_receive(:send_data).with(freeswitch_command('read', '1 1 sounds/file.mp3 name 10000 #'))
     @freec.read('sounds/file.mp3', :variable => 'name')
   end
+
+  it "should execute the record_session app when called the start_recording method" do
+    @freec.should_receive(:send_data).with(freeswitch_command('record_session', 'file.wav'))
+    @freec.start_recording('file.wav')
+  end
+
+  it "should execute the stop_record_session app when called the start_recording method" do
+    @freec.should_receive(:send_data).with(freeswitch_command('stop_record_session', 'file.wav'))
+    @freec.stop_recording('file.wav')
+  end
   
   it "should call the set app to set a variable" do
     @freec.should_receive(:send_data).with(freeswitch_command('set', 'name=value'))

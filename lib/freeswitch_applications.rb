@@ -39,7 +39,7 @@ module FreeswitchApplications
     execute_app("record", "#{file_name} #{options[:time_limit_secs]}")
   end
   
-  # Reads input (key presses) from the user.
+  # Plays the file in file_name and reads input (key presses) from the user.
   #
   # Options:
   # * <tt>:terminators</tt> option to set a different terminator or terminators (defaults to '#')
@@ -50,6 +50,18 @@ module FreeswitchApplications
     options[:terminators] = [options[:terminators]] if options[:terminators].is_a?(String)
     options = {:timeout => 10, :variable => 'input', :min => 1, :max => 1, :terminators => ['#']}.merge(options)
     execute_app("read", "#{options[:min]} #{options[:max]} #{file_name} #{options[:variable]} #{options[:timeout] * 1000} #{options[:terminators].join(',')}")
+  end
+  
+  # Starts recording the call in file in file_name
+  #
+  def start_recording(file_name)
+    execute_app('record_session', file_name)
+  end
+
+  # Stops recording the call in file in file_name
+  #  
+  def stop_recording(file_name)
+    execute_app('stop_record_session', file_name)
   end
   
   # Sets a variable with the give name to the given value.

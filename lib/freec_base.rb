@@ -30,7 +30,7 @@ class Freec < EventMachine::Connection
     parse_response
     if last_event_dtmf? && respond_to?(:on_dtmf)
       callback(:on_dtmf, call_vars[:dtmf_digit])
-    elsif waiting_for_this_response? && reset_wait_for || event_completed?
+    elsif waiting_for_this_response? && reset_wait_for || execute_completed?
       reload_application_code
       hangup unless callback(:step)
     end
@@ -54,6 +54,12 @@ class Freec < EventMachine::Connection
   
   def unbind  #:nodoc:
     callback(:on_hangup) if respond_to?(:on_hangup)
+  end
+  
+  def execute_completed?
+    (call_vars[:content_type] == 'text/event-plain' && call_vars[:event_name] == 'CHANNEL_EXECUTE_COMPLETE' ||
+     call_vars[:application] == 'bridge' && call_vars[:event_name] == 'CHANNEL_DESTROY') &&
+      call_vars[:unique_id] == @unique_id
   end
   
 private
@@ -93,13 +99,7 @@ private
     wait_for(:content_type, 'command/reply')
     false
   end
-    
-  def event_completed?
-    (call_vars[:content_type] == 'text/event-plain' && call_vars[:event_name] == 'CHANNEL_EXECUTE_COMPLETE' ||
-     call_vars[:application] == 'bridge' && call_vars[:event_name] == 'CHANNEL_DESTROY') &&
-      call_vars[:unique_id] == @unique_id
-  end
-  
+      
   def waiting_for_this_response?
     @waiting_for_key && @waiting_for_value && call_vars[@waiting_for_key] == @waiting_for_value
   end

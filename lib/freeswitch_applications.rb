@@ -82,6 +82,7 @@ module FreeswitchApplications
   # * <tt>pars</tt> is a string of arguments of the app
   # * <tt>lock</tt> can be set to false so Freeswitch won't wait for this app to finish before running the next one
   def execute_app(app, pars = '', lock = true)
+    @last_app_executed = app
     cmd = "sendmsg #{@unique_id}"
     cmd << "\ncall-command: execute"
     cmd << "\nexecute-app-name: #{app}"

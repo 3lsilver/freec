@@ -57,12 +57,23 @@ class Freec < EventMachine::Connection
   end
   
   def execute_completed?
-    (call_vars[:content_type] == 'text/event-plain' && call_vars[:event_name] == 'CHANNEL_EXECUTE_COMPLETE' ||
-     call_vars[:application] == 'bridge' && call_vars[:event_name] == 'CHANNEL_DESTROY') &&
-      call_vars[:unique_id] == @unique_id
+    (channel_execute_complete? || channel_destroyed_after_bridge?) &&
+    call_vars[:unique_id] == @unique_id
   end
   
 private
+
+  def channel_execute_complete?
+    complete =  call_vars[:content_type] == 'text/event-plain' && 
+                call_vars[:event_name] == 'CHANNEL_EXECUTE_COMPLETE' &&
+                @last_app_executed == call_vars[:application]
+    @last_app_executed = nil if complete
+    complete
+  end
+  
+  def channel_destroyed_after_bridge?
+    call_vars[:application] == 'bridge' && call_vars[:event_name] == 'CHANNEL_DESTROY'
+  end
 
   def callback(callback_name, *args)
     send(callback_name, *args) if respond_to?(callback_name)

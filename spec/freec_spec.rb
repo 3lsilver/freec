@@ -92,14 +92,24 @@ describe "Freec's receive_data hook" do
     @freec.receive_data("Event-Name: DTMF\nDTMF-Digit: 1\n#{SAMPLE_CALL_VARIABLES}".sub('command/reply', 'text/event-plain'))
   end
   
-  it "should call the step callback if response says event has been completed" do
+  it "should call the step callback if response says event has been completed for the last run app" do
     @freec.instance_variable_set(:@subscribed_to_events, true)
     @freec.should_receive(:step).and_return(true)
+    @freec.instance_variable_set(:@last_app_executed, 'set')
     @freec.receive_data("Event-Name: CHANNEL_EXECUTE_COMPLETE\n\n#{SAMPLE_CALL_VARIABLES}".sub('command/reply', 'text/event-plain'))    
+    @freec.instance_variable_get(:@last_app_executed).should be_nil
+  end
+
+  it "should NOT call the step callback if response says event has been completed but for a different app" do
+    @freec.instance_variable_set(:@subscribed_to_events, true)
+    @freec.should_receive(:step).never
+    @freec.receive_data("Event-Name: CHANNEL_EXECUTE_COMPLETE\n\n#{SAMPLE_CALL_VARIABLES}".sub('command/reply', 'text/event-plain'))    
+    @freec.instance_variable_get(:@last_app_executed).should be_nil
   end
 
   it "should hangup the call, send exit command to Freeswitch and disconnect from it when step callback returns nil" do
     @freec.instance_variable_set(:@subscribed_to_events, true)
+    @freec.instance_variable_set(:@last_app_executed, 'set')
     @freec.should_receive(:step).and_return(nil)
     @freec.should_receive(:execute_app).with('hangup')
     @freec.should_receive(:send_data).with("exit\n\n")

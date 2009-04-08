@@ -24,6 +24,12 @@ describe "how Freec calls Freeswitch applications" do
     @freec.log.level = Logger::FATAL 
   end
 
+  it "should set the last_app_executed variable to last run app" do
+    @freec.should_receive(:send_data).with(freeswitch_command('answer'))
+    @freec.answer
+    @freec.instance_variable_get(:@last_app_executed).should == 'answer'
+  end
+
   it "should execute the answer app when called the answer method" do
     @freec.should_receive(:send_data).with(freeswitch_command('answer'))
     @freec.answer

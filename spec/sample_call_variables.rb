@@ -24,6 +24,7 @@ Channel-Name: sofia/default/1001%4010.0.1.100
 Unique-ID: 40117b0a-186e-11dd-bbcd-7b74b6b4d31e
 Call-Direction: inbound
 Answer-State: early
+Application: set
 Channel-Read-Codec-Name: G722
 Channel-Read-Codec-Rate: 16000
 Channel-Write-Codec-Name: G722
